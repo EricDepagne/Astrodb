@@ -31,13 +31,37 @@ for i in listoftables:
     DBScheme.update(d)
 
 
+def database(action, tableout, star, field, value, tablein='stars'):
+
+    # Verifying the validity of the input.
+    validity = 0
+    if tableout not in DBScheme.keys():
+        validity = 1
+    if tableout in DBScheme.keys() and field not in DBScheme[tableout]:
+        validity = 2
+    if validity :
+        if validity == 1:
+            print("Table {0} does not exist. Try one of {1}".format(tableout, DBScheme.keys()))
+        if validity == 2:
+            print ("Field {0} in table {1} does not exist. Try one of {2}".format(field, tableout, DBScheme[tableout]))
+        sys.exit("Input not matching the database, exiting")
+    # Input is valid, let´ s proceed.
+
+    if action == 'delete' or action == 'del':
+        removeparameter(tablein, tableout, star, field, value)
+    elif action == 'insert':
+        addparameter(tablein, tableout, star, field, value)
+    else:
+        print("Action should be : delete, insert, update. Or use the function list() to get all infos concerning one object.")
+
+
 def removeparameter(tablein, tableout, star, field, value):
     id = getid(tablein, star)
     present = checkentry(tableout, field, id, value)
 
     if present:
         print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
-        cursor.execute(" delete from temperatures where id=(%s) and temperature = (%s)", (id, value))
+        cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
     else:
         print("Value {0} Not in table {1} for star {2}".format(value, tableout, star))
     connection.commit()
@@ -63,10 +87,13 @@ def addparameter(tablein, tableout, star, field, value):
 # Get the ID of the star
     id = getid(tablein, star)
     present = checkentry(tableout, field, id, value)
+    print present
 
     if not present:
         print("Inserting {0} in table {1} for star {2}".format(value, tableout, star))
-        cursor.execute("insert into temperatures (id, temperature) values ((%s), (%s) )", (id, value))
+
+
+        cursor.execute("insert into %s (id, %s) values ((%s), (%s) )", (AsIs(tableout), AsIs(field), id, value))
     else:
         print("Value {0} already in table {1} for star {2}".format(value, tableout, star))
     connection.commit()
