@@ -73,6 +73,26 @@ def database(action, tableout, star, field, value, tablein='stars'):
 def removeparameter(tablein, tableout, star, field, value):
     id = getid(tablein, star)
     present = checkentry(tableout, field, id, value)
+    print type(field), field
+    print type(value), value
+# Preparing the delete SQL query.
+
+#    query = '%(row0)s = %(value0)s'
+    query = ""
+    prefix = ""
+    test = {'table': AsIs(tableout)}
+    for i in range(len(field)):
+        row = 'row'+str(i)
+        val = 'value'+str(i)
+        if i > 0:
+            prefix = " and "
+        query = query + prefix + " %("+row+")s = %("+val+")s"
+        test.update({row: AsIs(field[i])})
+        test.update({val: AsIs(value[i])})
+
+# query template
+    SQL = "delete from %(table)s where " + query
+    print (cursor.mogrify(SQL, test))
 
     if present:
         print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
@@ -90,22 +110,34 @@ def addparameter(tablein, tableout, star, field, value):
     id = getid(tablein, star)
     present = checkentry(tableout, field, id, value)
     print present
-    if type(field) is not tuple or type(value) is not tuple:
-        field = tuple(field)
-        value = (value,)
-# Preparing the SQL query.
-# query template
-    SQL = "insert into %s %s values %s"
-# Preparing the data
-    t1 = AsIs(tableout)
-    v1 = tuple([AsIs(i) for i in value + (id,)])
-    f1 = tuple([AsIs(i) for i in field + ('id',)])
-    data = (t1, f1, v1)
-    present = False
+# Preparing the insert SQL query.
+    query = ""
+    rows = ""
+    values = ""
+    coma = ""
+    test = {'table': AsIs(tableout)}
+    for i in range(len(field)):
+        row = 'row'+str(i)
+        val = 'value'+str(i)
+        if i > 0:
+            coma = ","
+        rows = rows + coma + "%("+row+")s"
+        values = values + coma + "%("+val+")s"
+        test.update({row: AsIs(field[i])})
+        test.update({val: AsIs(value[i])})
+    rows = "(id, " + rows + ")"
+    values = "(" + str(id) + ", " + values + ")"
+    print rows
+    print values
+    print test
+    query = "%(table)s " + rows + " values " + values
 
+# query template
+    SQL = "insert into " + query
+    print SQL
     if not present:
-        print(cursor.mogrify(SQL, data))
-        cursor.execute(SQL, data)
+        print(cursor.mogrify(SQL, test))
+        cursor.execute(SQL, test)
         #cursor.execute("insert into %s %s values (%s)", (AsIs(tableout), AsIs(f), v))
 
         #cursor.execute("insert into %s (id, %s) values ((%s), (%s) )", (AsIs(tableout), AsIs(field), id, value))
@@ -123,7 +155,7 @@ def checkentry(table, field, id, value):
     t1 = AsIs(table)
     f1 = tuple([AsIs(i) for i in field])
     data = (f1, t1, id)
-    print data
+    # print data
     cursor.execute(SQL, data)
     result = cursor.fetchall()
 #    for i in range(len(field)):
@@ -138,7 +170,7 @@ def checkentry(table, field, id, value):
 # We check that the value to be insered is not here already.
     present = False
     for i, v in enumerate(result):
-        print i,v, value
+        #print i,v, value
         if value in v:
             present = True
     return present
