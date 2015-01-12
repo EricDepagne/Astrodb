@@ -38,12 +38,32 @@ def info(star):
         if key != 'stars':
             tables.append(key)
     # print tables
+# query : select vr, jd from vr where id = 8
+# query : select %(row0)s ... %(rown)s from %(table)s where %(id)s = id
+# test = {'table' : Asis(tables), 'row0': nameofrow0,  etc.}
+    #query = "select "
+    test = {}
     for table in tables:
-        #print DBScheme[table]
-        #print cursor.mogrify("select %s from %s where id=%s", (AsIs(DBScheme[table][0]), AsIs(table), id))
-        cursor.execute("select %s from %s where id=%s", (AsIs(DBScheme[table][0]), AsIs(table), id))
+        # print table, DBScheme[table]
+# preparing the query
+        d = {key: AsIs(key) for key in DBScheme[table]}
+        l = ['%('+key+')s' for key in DBScheme[table]]
+        p = ', '.join(x for x in l)
+        #p = "("+p+")"
+
+        test.update(d)
+
+        # print cursor.mogrify("select %s from %s where id=%s", (AsIs(DBScheme[table][0]), AsIs(table), id))
+        #cursor.execute("select %s from %s where id=%s", (AsIs(DBScheme[table][0]), AsIs(table), id))
+        #res = cursor.fetchall()
+        #print"d vaut : {0} et p vaut {1} et table {2}".format(d, p, table)
+        query = "select " + p + " from " + table + " where id = " + str(id)
+        print cursor.mogrify(query, d)
+        cursor.execute(query, d)
         res = cursor.fetchall()
-        print table, res
+        print res
+
+   # print test
 
 
 def database(action, tableout, star, field, value, tablein='stars'):
@@ -92,6 +112,7 @@ def removeparameter(tablein, tableout, star, field, value):
 
 # query template
     SQL = "delete from %(table)s where " + query
+    print SQL, test
     print (cursor.mogrify(SQL, test))
 
     if present:
