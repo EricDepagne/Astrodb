@@ -31,7 +31,18 @@ for i in listoftables:
     DBScheme.update(d)
 
 
+def update(star, ra, dec):
+    '''
+    Update the ra and dec for a star, if need be
+    '''
+    cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(ra), AsIs(dec), star))
+    connection.commit()
+    return
+
 def info(star):
+    '''
+    lists all attributes of the star
+    '''
     id = getid('stars', star)
     tables = []
     for key in DBScheme.keys():
