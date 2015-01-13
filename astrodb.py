@@ -8,6 +8,11 @@
 import psycopg2
 from psycopg2.extensions import AsIs
 
+# Astro imports
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
+
 user = 'postgres'
 host = 'localhost'
 port = 5432
@@ -35,9 +40,11 @@ def update(star, ra, dec):
     '''
     Update the ra and dec for a star, if need be
     '''
-    cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(ra), AsIs(dec), star))
+    c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
+    cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
     connection.commit()
     return
+
 
 def info(star):
     '''
@@ -46,8 +53,7 @@ def info(star):
     id = getid('stars', star)
     tables = []
     for key in DBScheme.keys():
-        if key != 'stars':
-            tables.append(key)
+        tables.append(key)
     for table in tables:
         # print table, DBScheme[table]
 # preparing the query
@@ -58,10 +64,15 @@ def info(star):
 
         #print"d vaut : {0} et p vaut {1} et table {2}".format(d, p, table)
         query = "select " + p + " from " + table + " where id = " + str(id)
-        print cursor.mogrify(query, d)
+        # print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
-        print res
+        if table == 'stars':
+            print res[0]
+            c = SkyCoord(res[0][1], res[0][2], 'icrs', unit='deg')
+            print c.to_string('hmsdms')
+        else:
+            print res
 
    # print test
 
