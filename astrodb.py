@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # python imports
-import sys
+# import sys
 
 # sql import
 import psycopg2
@@ -37,12 +37,6 @@ def info(star):
     for key in DBScheme.keys():
         if key != 'stars':
             tables.append(key)
-    # print tables
-# query : select vr, jd from vr where id = 8
-# query : select %(row0)s ... %(rown)s from %(table)s where %(id)s = id
-# test = {'table' : Asis(tables), 'row0': nameofrow0,  etc.}
-    #query = "select "
-    test = {}
     for table in tables:
         # print table, DBScheme[table]
 # preparing the query
@@ -51,11 +45,6 @@ def info(star):
         p = ', '.join(x for x in l)
         #p = "("+p+")"
 
-        test.update(d)
-
-        # print cursor.mogrify("select %s from %s where id=%s", (AsIs(DBScheme[table][0]), AsIs(table), id))
-        #cursor.execute("select %s from %s where id=%s", (AsIs(DBScheme[table][0]), AsIs(table), id))
-        #res = cursor.fetchall()
         #print"d vaut : {0} et p vaut {1} et table {2}".format(d, p, table)
         query = "select " + p + " from " + table + " where id = " + str(id)
         print cursor.mogrify(query, d)
@@ -93,31 +82,39 @@ def database(action, tableout, star, field, value, tablein='stars'):
 def removeparameter(tablein, tableout, star, field, value):
     id = getid(tablein, star)
     present = checkentry(tableout, field, id, value)
-    print type(field), field
-    print type(value), value
 # Preparing the delete SQL query.
 
 #    query = '%(row0)s = %(value0)s'
     query = ""
     prefix = ""
     test = {'table': AsIs(tableout)}
-    for i in range(len(field)):
+    if isinstance(field, str):
+        parameternumber = 1
+    if isinstance(field, tuple):
+        parameternumber = len(field)
+    for i in range(parameternumber):
         row = 'row'+str(i)
         val = 'value'+str(i)
         if i > 0:
             prefix = " and "
         query = query + prefix + " %("+row+")s = %("+val+")s"
-        test.update({row: AsIs(field[i])})
-        test.update({val: AsIs(value[i])})
+        try:
+            test.update({row: AsIs(field[i])})
+            test.update({val: AsIs(value[i])})
+        except TypeError:
+            test.update({row: AsIs(field)})
+            test.update({val: AsIs(value)})
 
 # query template
     SQL = "delete from %(table)s where " + query
-    print SQL, test
-    print (cursor.mogrify(SQL, test))
+    #print SQL, test
+    # print (cursor.mogrify(SQL, test))
+    # print present
 
     if present:
         print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
-        cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
+        # cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
+        cursor.execute(SQL, test)
     else:
         print("Value {0} not in table {1} for star {2}".format(value, tableout, star))
     connection.commit()
@@ -130,32 +127,39 @@ def addparameter(tablein, tableout, star, field, value):
 # Get the ID of the star
     id = getid(tablein, star)
     present = checkentry(tableout, field, id, value)
-    print present
 # Preparing the insert SQL query.
     query = ""
     rows = ""
     values = ""
     coma = ""
     test = {'table': AsIs(tableout)}
-    for i in range(len(field)):
+    if isinstance(field, str):
+        parameternumber = 1
+    if isinstance(field, tuple):
+        parameternumber = len(field)
+    for i in range(parameternumber):
         row = 'row'+str(i)
         val = 'value'+str(i)
         if i > 0:
             coma = ","
         rows = rows + coma + "%("+row+")s"
         values = values + coma + "%("+val+")s"
-        test.update({row: AsIs(field[i])})
-        test.update({val: AsIs(value[i])})
+        try:
+            test.update({row: AsIs(field[i])})
+            test.update({val: AsIs(value[i])})
+        except TypeError:
+            test.update({row: AsIs(field)})
+            test.update({val: AsIs(value)})
     rows = "(id, " + rows + ")"
     values = "(" + str(id) + ", " + values + ")"
-    print rows
-    print values
-    print test
+    #print rows
+    #print values
+    #print test
     query = "%(table)s " + rows + " values " + values
 
 # query template
     SQL = "insert into " + query
-    print SQL
+    #print SQL
     if not present:
         print(cursor.mogrify(SQL, test))
         cursor.execute(SQL, test)
@@ -170,30 +174,27 @@ def addparameter(tablein, tableout, star, field, value):
 def checkentry(table, field, id, value):
     present = False
     print ("Checking input data: {0}, {1}, {2}".format(table, field, value))
-    if len(field) != len(value):
-        sys.exit()
     SQL = "select %s from %s where id = %s"
     t1 = AsIs(table)
-    f1 = tuple([AsIs(i) for i in field])
+    if isinstance(field, str):
+        f1 = [AsIs(field)]
+    if isinstance(field, tuple):
+        f1 = [AsIs(i) for i in field]
     data = (f1, t1, id)
-    # print data
     cursor.execute(SQL, data)
+    #print cursor.mogrify(SQL, data)
     result = cursor.fetchall()
-#    for i in range(len(field)):
-#        print field[i]
-#        print value[i]
-#    # We extract all the values for a given star from the correct table
-#    #print cursor.mogrify("select %s from %s where id=%s", (AsIs(field), AsIs(table), id))
-#        cursor.execute("select %s from %s where id=%s", (AsIs(field[i]), AsIs(table[i]), id))
-#        result = cursor.fetchall()
-#        print result
 
 # We check that the value to be insered is not here already.
     present = False
-    for i, v in enumerate(result):
-        #print i,v, value
-        if value in v:
-            present = True
+    # print value, result[0][0]
+    for index, val in enumerate(result):
+        try:
+            if list(value) == result[index][0]:
+                present = True
+        except TypeError:
+            if value == result[index][0][0]:
+                present = True
     return present
 
 
