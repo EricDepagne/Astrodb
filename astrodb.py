@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# python imports
-# import sys
 
 # sql import
 import psycopg2
@@ -54,6 +52,14 @@ def update(star, ra, dec):
     connection.commit()
     return
 
+
+def newstar(star):
+    '''
+    Add a new star in the data base
+    '''
+    print (star)
+    cursor.execute("insert into stars (name) values (%s)", (star,))
+    connection.commit()
 
 def info(star):
     '''
