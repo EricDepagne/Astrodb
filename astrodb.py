@@ -35,18 +35,18 @@ for i in listoftables:
 
 
 def listofstars():
-    '''
+    """
     Gives a list of all stars in the database
-    '''
+    """
     cursor.execute("select name from stars")
     res = cursor.fetchall()
     return [i[0] for i in res]
 
 
 def update(star, ra, dec):
-    '''
+    """
     Update the ra and dec for a star, if need be
-    '''
+    """
     c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
     cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
     connection.commit()
@@ -54,18 +54,18 @@ def update(star, ra, dec):
 
 
 def newstar(star):
-    '''
+    """
     Add a new star in the data base
-    '''
+    """
     print (star)
     cursor.execute("insert into stars (name) values (%s)", (star,))
     connection.commit()
 
 
 def info(star):
-    '''
+    """
     lists all attributes of the star
-    '''
+    """
     id = getid('stars', star)
     tables = []
     info = {}
@@ -86,9 +86,9 @@ def info(star):
         res = cursor.fetchall()
         if table == 'stars':
             c = SkyCoord(res[0][1], res[0][2], 'icrs', unit='deg')
-            print res[0][0], c.to_string('hmsdms')
-        else:
-            print res
+            #print res[0][0], c.to_string('hmsdms')
+        #else:
+            #print res
         d = {table: res}
         info.update(d)
 
