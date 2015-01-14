@@ -61,12 +61,14 @@ def newstar(star):
     cursor.execute("insert into stars (name) values (%s)", (star,))
     connection.commit()
 
+
 def info(star):
     '''
     lists all attributes of the star
     '''
     id = getid('stars', star)
     tables = []
+    info = {}
     for key in DBScheme.keys():
         tables.append(key)
     for table in tables:
@@ -79,16 +81,19 @@ def info(star):
 
         #print"d vaut : {0} et p vaut {1} et table {2}".format(d, p, table)
         query = "select " + p + " from " + table + " where id = " + str(id)
-        # print cursor.mogrify(query, d)
+        print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
         if table == 'stars':
             c = SkyCoord(res[0][1], res[0][2], 'icrs', unit='deg')
-            print c.to_string('hmsdms')
+            print res[0][0], c.to_string('hmsdms')
         else:
             print res
+        d = {table: res}
+        info.update(d)
 
    # print test
+    return info
 
 
 def database(action, tableout, star, field, value, tablein='stars'):
