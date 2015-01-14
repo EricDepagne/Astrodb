@@ -36,6 +36,15 @@ for i in listoftables:
     DBScheme.update(d)
 
 
+def listofstars():
+    '''
+    Gives a list of all stars in the database
+    '''
+    cursor.execute("select name from stars")
+    res = cursor.fetchall()
+    return [i[0] for i in res]
+
+
 def update(star, ra, dec):
     '''
     Update the ra and dec for a star, if need be
@@ -68,7 +77,6 @@ def info(star):
         cursor.execute(query, d)
         res = cursor.fetchall()
         if table == 'stars':
-            print res[0]
             c = SkyCoord(res[0][1], res[0][2], 'icrs', unit='deg')
             print c.to_string('hmsdms')
         else:
