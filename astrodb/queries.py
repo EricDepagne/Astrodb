@@ -71,33 +71,28 @@ def info(star):
     tables = []
     data = {}
     for key in DBScheme.keys():
-        # `print len(DBScheme[key]), DBScheme[key][0]
         for i in range(len(DBScheme[key])):
             data.update({DBScheme[key][i]: ''})
     for key in DBScheme.keys():
         tables.append(key)
     for table in tables:
-        # print table, DBScheme[table]
 # preparing the query
         d = {key: AsIs(key) for key in DBScheme[table]}
         l = ['%('+key+')s' for key in DBScheme[table]]
         p = ', '.join(x for x in l)
-        #p = "("+p+")"
 
-        #print"d vaut : {0} et p vaut {1} et table {2}".format(d, p, table)
         query = "select " + p + " from " + table + " where id = " + str(id)
-        print cursor.mogrify(query, d)
+        # print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
         if table == 'stars':
-            c = SkyCoord(res[0][1], res[0][2], 'icrs', unit='deg')
-            #print res[0][0], c.to_string('hmsdms')
-        #else:
-            #print res
-        d = {table: res}
-        data.update(d)
+            # This is the only table with multiply unique columns.
+            for i, key in enumerate(DBScheme[table]):
+                data.update({key: res[0][i]})
+        else:
+            for i in range(len(DBScheme[table])):
+                data.update({DBScheme[table][i]: [j[i] for j in res]})
 
-   # print test
     return data
 
 
