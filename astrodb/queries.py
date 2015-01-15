@@ -35,6 +35,13 @@ for i in listoftables:
     DBScheme.update(d)
 
 
+def clean():
+    """
+    Used to rollback the last query, in case it fails.
+    """
+    connection.rollback()
+
+
 def listofstars():
     """
     Gives a list of all stars in the database
