@@ -31,3 +31,19 @@ When you have activated the virtual environment you can check that is rightly in
     astrodb
 
 This should answer you something.
+
+How to release
+**************
+
+#. Be sure that you don't commit anything that break your package;
+#. Update your release version in ``astrodb/__init__.py``, remember you can't push a version that has allready been released;
+#. Then commit and push your changes;
+#. Go to the root directory of your package where there is a ``setup.py`` file;
+#. Build the new package: ::
+   
+       python setup.py sdist
+#. When it's done release it to PyPi: ::
+
+       python setup.py sdist upload
+
+#. It's done!
