@@ -69,7 +69,11 @@ def info(star):
     """
     id = getid('stars', star)
     tables = []
-    info = {}
+    data = {}
+    for key in DBScheme.keys():
+        # `print len(DBScheme[key]), DBScheme[key][0]
+        for i in range(len(DBScheme[key])):
+            data.update({DBScheme[key][i]: ''})
     for key in DBScheme.keys():
         tables.append(key)
     for table in tables:
@@ -91,10 +95,10 @@ def info(star):
         #else:
             #print res
         d = {table: res}
-        info.update(d)
+        data.update(d)
 
    # print test
-    return info
+    return data
 
 
 def database(action, tableout, star, field, value, tablein='stars'):
