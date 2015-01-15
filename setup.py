@@ -12,10 +12,12 @@ setup(
     packages=find_packages(),
     classifiers=[
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
+        'Environment :: Console',
+        'Intended Audience :: Science/Research',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
