@@ -1,6 +1,7 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
-
+"""
+Some stuff to query the database
+"""
 
 # sql import
 import psycopg2
