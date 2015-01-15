@@ -87,8 +87,16 @@ def info(star):
         res = cursor.fetchall()
         if table == 'stars':
             # This is the only table with multiply unique columns.
+            #print res[0][1], res[0][2]
+            c = SkyCoord(ra=res[0][1]*u.degree, dec=res[0][2]*u.degree)
             for i, key in enumerate(DBScheme[table]):
-                data.update({key: res[0][i]})
+                if 'ight' in key:
+                    toinsert = c.ra.to_string('h')
+                elif 'dec' in key:
+                    toinsert = c.dec.to_string('deg')
+                else:
+                    toinsert = res[0][i]
+                data.update({key: toinsert})
         else:
             for i in range(len(DBScheme[table])):
                 data.update({DBScheme[table][i]: [j[i] for j in res]})
