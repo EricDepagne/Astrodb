@@ -65,7 +65,6 @@ def newstar(star):
     """
     Add a new star in the data base
     """
-    print (star)
     cursor.execute("insert into stars (name) values (%s)", (star,))
     connection.commit()
 
@@ -154,22 +153,24 @@ def removeparameter(tablein, tableout, star, field, value):
         if i > 0:
             prefix = " and "
         query = query + prefix + " %("+row+")s = %("+val+")s"
-        try:
+        if isinstance(field, str):
+            test.update({row: AsIs(field)})
+            test.update({val: value})
+        if isinstance(field, tuple):
             test.update({row: AsIs(field[i])})
             test.update({val: AsIs(value[i])})
-        except TypeError:
-            test.update({row: AsIs(field)})
-            test.update({val: AsIs(value)})
 
 # query template
-    SQL = "delete from %(table)s where " + query
+    SQL = "delete from %(table)s where " + query + " and  id = " + str(id)
     #print SQL, test
     # print (cursor.mogrify(SQL, test))
     # print present
 
+    present = True
     if present:
         print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
         # cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
+        print cursor.mogrify(SQL, test)
         cursor.execute(SQL, test)
     else:
         print("Value {0} not in table {1} for star {2}".format(value, tableout, star))
@@ -200,12 +201,12 @@ def addparameter(tablein, tableout, star, field, value):
             coma = ","
         rows = rows + coma + "%("+row+")s"
         values = values + coma + "%("+val+")s"
-        try:
+        if isinstance(field, str):
+            test.update({row: AsIs(field)})
+            test.update({val: value})
+        if isinstance(field, tuple):
             test.update({row: AsIs(field[i])})
             test.update({val: AsIs(value[i])})
-        except TypeError:
-            test.update({row: AsIs(field)})
-            test.update({val: AsIs(value)})
     rows = "(id, " + rows + ")"
     values = "(" + str(id) + ", " + values + ")"
     #print rows
