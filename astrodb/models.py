@@ -7,12 +7,26 @@ You have to install "peewee" from its repository because this code use ManyToMan
     pip install -e git+https://github.com/coleifer/peewee#egg=peewee
 
 Also, the code should be splitted in some modules and not resides anymore in the models.
+
 """
 import os
 import decimal, random
 
 from peewee import *
 from playhouse.shortcuts import ManyToManyField
+
+
+
+
+# Uncomment this to see executed SQL queries from peewee ORM
+import logging
+logging.basicConfig(
+    format='[%(asctime)-15s] [%(name)s] %(levelname)s]: %(message)s',
+    level=logging.DEBUG
+)
+
+
+
 
 def decimal_round(value, decimal_places=2):
     """
@@ -46,6 +60,12 @@ class Star(BaseModel):
     Star model
     
     Can have multiple names that are not unique (Many stars can share the same names), so we use a ManyToMany relation
+    
+    What's a ManyToMany relation (or m2m relation) ?
+    ************************************************
+    
+    ManyToMany means "Multiple object can relates on multiple object relations"
+    
     """
     names = ManyToManyField(Name, related_name='stars')
     right_ascension = DoubleField(default=0.0, null=False)
@@ -103,7 +123,7 @@ print "=== Creating a single Name objects ==="
 print u"    └── Adding name: Meuh"
 name = Name(name="Meuh")
 name.save()
-
+print
 
 print "=== Creating some Name objects ==="
 name_samples = (
@@ -150,9 +170,18 @@ for name_pattern in ["Terminator", "Esteban", "Sterotata"]:
     name_store[name_pattern] = list(name_results) # For interpretation of lazy query into python list
     print
 
+
+
 """
 Playing with Star model
 """
+print "=== Creating a single Star object ==="
+print u"    └── Adding star: ra(0.10); dec(15.33); names(Foo);"
+star = Star(right_ascension=0.10, declination=15.33)
+star.save()
+star.names.add(Name.get(Name.name == "Foo"))
+print
+
 print "=== Creating some Star objects ==="
 for k,v in name_store.items():
     # Prepare some random floating values
@@ -160,7 +189,7 @@ for k,v in name_store.items():
     declination = decimal_round(random.uniform(0, 42))
     
     names_render = ", ".join([item.name for item in v])
-    print u"    ├── Adding star: ra({ra}); dec({dec}); names({names});".format(ra=right_ascension, dec=declination, names=names_render)
+    print u"    └── Adding star: ra({ra}); dec({dec}); names({names});".format(ra=right_ascension, dec=declination, names=names_render)
     
     # Create the new star object
     star = Star(right_ascension=right_ascension, declination=declination)
@@ -171,5 +200,5 @@ for k,v in name_store.items():
         star.names.add(item)
     print u"        └── total names added :", star.names.select().count()
 
-    
+print
 print "Finished!"
