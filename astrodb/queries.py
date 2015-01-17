@@ -35,6 +35,21 @@ for i in listoftables:
     DBScheme.update(d)
 
 
+def usage():
+    """
+    Temporary help
+    """
+    print """
+    This module creates a series of functions to access and update a database of stars.
+    The following functions are available:
+
+    clean()
+    listofstars()
+    newstar()
+    database()
+    """
+
+
 def clean():
     """
     Used to rollback the last query, in case it fails.
