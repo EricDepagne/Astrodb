@@ -92,17 +92,26 @@ def info(star):
     tables = []
     data = {}
     for key in DBScheme.keys():
+<<<<<<< Updated upstream:astrodb/queries.py
+=======
+        # `print len(DBScheme[key]), DBScheme[key][0]
+>>>>>>> Stashed changes:astrodb.py
         for i in range(len(DBScheme[key])):
             data.update({DBScheme[key][i]: ''})
     for key in DBScheme.keys():
         tables.append(key)
     for table in tables:
+<<<<<<< Updated upstream:astrodb/queries.py
+=======
+        print table, DBScheme[table]
+>>>>>>> Stashed changes:astrodb.py
 # preparing the query
         d = {key: AsIs(key) for key in DBScheme[table]}
         l = ['%('+key+')s' for key in DBScheme[table]]
         p = ', '.join(x for x in l)
 
         query = "select " + p + " from " + table + " where id = " + str(id)
+<<<<<<< Updated upstream:astrodb/queries.py
         # print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
@@ -122,6 +131,27 @@ def info(star):
             for i in range(len(DBScheme[table])):
                 data.update({DBScheme[table][i]: [j[i] for j in res]})
 
+=======
+        #print cursor.mogrify(query, d)
+        cursor.execute(query, d)
+        res = cursor.fetchall()
+        for i in range(len(DBScheme[table])):
+            if i == 0:
+                print "0"
+                continue
+            print i
+            #print "res : ", res[0][i], DBScheme[table][i]
+            #data{DBScheme[table][i] : res[0][i]}
+            data[DBScheme[table][i]] = res[0][i]
+        print res
+#        if table == 'stars':
+#            c = SkyCoord(res[0][1], res[0][2], 'icrs', unit='deg')
+#            #print res[0][0], c.to_string('hmsdms')
+#        else:
+#            print
+
+   # print test
+>>>>>>> Stashed changes:astrodb.py
     return data
 
 
