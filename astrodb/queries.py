@@ -25,10 +25,9 @@ cursor = connection.cursor()
 
 # First, we list all tables available in the database.
 cursor.execute("select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';")
-listoftables = cursor.fetchall()
 # We list all the columns in each table.
 DBScheme = {}
-for i in listoftables:
+for i in cursor.fetchall():
     cursor.execute("select * from %s limit 0", (AsIs(i[0]),))
     colnames = [desc[0] for desc in cursor.description if desc[0] != 'id']
     d = {i[0]: colnames}
