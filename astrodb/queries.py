@@ -43,10 +43,45 @@ def usage():
     This module creates a series of functions to access and update a database of stars.
     The following functions are available:
 
-    clean()
-    listofstars()
-    newstar()
-    database()
+    clean() : allows to put the database in a clean state, in case errors have occured.
+    Parameters : None
+
+    listofstars() : parses the stars table, and lists all entries there. It will give a complete list of stars that have been entered.
+    Parameters : None
+    Returns : list.
+
+    newstar() : Creates a new entry in the stars table.
+
+    newstar(star)
+    Parameters
+    star : string
+    Example : newstar('Star1')
+
+    update() : Used to enter the RA and DEC of a star.
+
+    update(star, RA, DEC)
+    Parameters :
+    star : string
+    RA : float
+    DEC : float
+    Example: update('Star1', 0.0, 0.0)
+
+    database(): The main function of the module. Used to insert new data in the database but also to remove records from the database.
+
+    database(action, table, star, field, value)
+
+    Parameters:
+    action : string. Either insert or delete.
+    table :string. Where is the data to be inserted
+    star : string. Name of the stars whose record is to be updated
+    field : string. Property to be updated.
+    value: string of float. The type depends on the property.
+
+    Example :
+    database('insert','temperatures', 'HE 1506-0113', 'temperature', 5016)
+    database('insert', 'names', 'BS 16929-005', 'alternatenames', '2MASS J13032947+3351091' )
+
+
     """
 
 
