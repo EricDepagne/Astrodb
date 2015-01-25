@@ -17,7 +17,7 @@ host = 'localhost'
 port = 5432
 
 # Connection to the local database.
-connection = psycopg2.connect(database="Astronomy",
+connection = psycopg2.connect(database="AstroTest",
                               user=user,
                               host=host,
                               port=port)
@@ -104,7 +104,9 @@ def update(star, ra, dec):
     """
     Update the ra and dec for a star, if need be
     """
+    print ra, dec
     c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
+    print c.ra.degree, c.dec.degree
     cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
     connection.commit()
     return
@@ -114,7 +116,12 @@ def newstar(star):
     """
     Add a new star in the data base
     """
-    cursor.execute("insert into stars (name) values (%s)", (star,))
+    star_id = getid(star)
+# We are not interested in the real id of the star. If the return is not None, then the star exists already.
+    if not star_id:
+        cursor.execute("insert into stars (name) values (%s)", (star,))
+    else:
+        print("Star already exists")
     connection.commit()
 
 
@@ -122,7 +129,7 @@ def info(star):
     """
     lists all attributes of the star
     """
-    id = getid('stars', star)
+    id = getid(star)[0][0]
     tables = []
     data = {}
 
@@ -137,18 +144,22 @@ def info(star):
         l = ['%('+key+')s' for key in DBScheme[table]]
         p = ', '.join(x for x in l)
 
-        query = "select " + p + " from " + table + " where id = " + str(id)
+        star_id = 'star_id'
+        if table == 'stars':
+            star_id = 'id'
+        query = "select " + p + " from " + table + " where " + star_id + " = " + str(id)
         # print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
+        # print res
         if table == 'stars':
             # This is the only table with multiply unique columns.
-            #print res[0][1], res[0][2]
+            # print res[0][1], res[0][2]
             c = SkyCoord(ra=res[0][1]*u.degree, dec=res[0][2]*u.degree)
             for i, key in enumerate(DBScheme[table]):
-                if 'ight' in key:
+                if 'ascension' in key:
                     toinsert = c.ra.to_string('h')
-                elif 'dec' in key:
+                elif 'declination' in key:
                     toinsert = c.dec.to_string('deg')
                 else:
                     toinsert = res[0][i]
@@ -185,7 +196,7 @@ def database(action, tableout, star, field, value, tablein='stars'):
 
 
 def removeparameter(tablein, tableout, star, field, value):
-    id = getid(tablein, star)
+    id = getid(star)
     present = checkentry(tableout, field, id, value)
 # Preparing the delete SQL query.
 
@@ -232,7 +243,7 @@ def addparameter(tablein, tableout, star, field, value):
 
     """
 # Get the ID of the star
-    id = getid(tablein, star)
+    id = getid(star)[0][0]
     present = checkentry(tableout, field, id, value)
 # Preparing the insert SQL query.
     query = ""
@@ -257,7 +268,7 @@ def addparameter(tablein, tableout, star, field, value):
         if isinstance(field, tuple):
             test.update({row: AsIs(field[i])})
             test.update({val: AsIs(value[i])})
-    rows = "(id, " + rows + ")"
+    rows = "(star_id, " + rows + ")"
     values = "(" + str(id) + ", " + values + ")"
     #print rows
     #print values
@@ -281,15 +292,15 @@ def addparameter(tablein, tableout, star, field, value):
 def checkentry(table, field, id, value):
     present = False
     print ("Checking input data: {0}, {1}, {2}".format(table, field, value))
-    SQL = "select %s from %s where id = %s"
+    SQL = "select %s from %s where star_id = %s"
     t1 = AsIs(table)
     if isinstance(field, str):
         f1 = [AsIs(field)]
     if isinstance(field, tuple):
         f1 = [AsIs(i) for i in field]
     data = (f1, t1, id)
+    print cursor.mogrify(SQL, data)
     cursor.execute(SQL, data)
-    #print cursor.mogrify(SQL, data)
     result = cursor.fetchall()
 
 # We check that the value to be insered is not here already.
@@ -305,7 +316,9 @@ def checkentry(table, field, id, value):
     return present
 
 
-def getid(tablein, star):
+def getid(star):
     # Penser `a verifier que l'étoile existe.
-    cursor.execute("select id from %s where name = (%s)", (AsIs(tablein), star))
-    return cursor.fetchall()[0][0]
+
+    cursor.execute("select id from stars where name = (%s)", (star,))
+    res = cursor.fetchall()
+    return res
