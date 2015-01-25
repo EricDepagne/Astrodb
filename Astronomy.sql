@@ -30,24 +30,27 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: stars; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: magnitudes; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
-CREATE TABLE stars (
-    id bigint,
-    name character varying NOT NULL,
-    right_ascension double precision DEFAULT 0.0 NOT NULL,
-    declination double precision DEFAULT 0.0 NOT NULL
+CREATE TABLE magnitudes (
+    id integer NOT NULL,
+    star_id integer,
+    u real,
+    b real,
+    v real,
+    r real,
+    i real
 );
 
 
-ALTER TABLE public.stars OWNER TO postgres;
+ALTER TABLE public.magnitudes OWNER TO postgres;
 
 --
--- Name: Stars_ID_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: magnitudes_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE SEQUENCE "Stars_ID_seq"
+CREATE SEQUENCE magnitudes_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -55,85 +58,200 @@ CREATE SEQUENCE "Stars_ID_seq"
     CACHE 1;
 
 
-ALTER TABLE public."Stars_ID_seq" OWNER TO postgres;
+ALTER TABLE public.magnitudes_id_seq OWNER TO postgres;
 
 --
--- Name: Stars_ID_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: magnitudes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE "Stars_ID_seq" OWNED BY stars.id;
+ALTER SEQUENCE magnitudes_id_seq OWNED BY magnitudes.id;
 
-
---
--- Name: abundances; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
---
-
-CREATE TABLE abundances (
-    id integer NOT NULL,
-    carbon double precision,
-    oxygen double precision
-);
-
-
-ALTER TABLE public.abundances OWNER TO postgres;
 
 --
 -- Name: names; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
 CREATE TABLE names (
-    id integer,
-    alternatenames character varying(50)
+    id integer NOT NULL,
+    star_id integer,
+    alternatename character varying
 );
 
 
 ALTER TABLE public.names OWNER TO postgres;
 
 --
+-- Name: names_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE names_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.names_id_seq OWNER TO postgres;
+
+--
+-- Name: names_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE names_id_seq OWNED BY names.id;
+
+
+--
+-- Name: stars; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+--
+
+CREATE TABLE stars (
+    name character varying NOT NULL,
+    right_ascension double precision,
+    declination double precision,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.stars OWNER TO postgres;
+
+--
+-- Name: stars_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE stars_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.stars_id_seq OWNER TO postgres;
+
+--
+-- Name: stars_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE stars_id_seq OWNED BY stars.id;
+
+
+--
 -- Name: temperatures; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
 CREATE TABLE temperatures (
-    id integer NOT NULL,
-    temperature smallint
+    star_id integer,
+    temperature integer,
+    id integer NOT NULL
 );
 
 
 ALTER TABLE public.temperatures OWNER TO postgres;
 
 --
--- Name: vr; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: temperatures_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE vr (
-    id integer,
-    vr double precision,
-    observationdate double precision
-);
+CREATE SEQUENCE temperatures_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
 
-ALTER TABLE public.vr OWNER TO postgres;
+ALTER TABLE public.temperatures_id_seq OWNER TO postgres;
 
 --
--- Name: TABLE vr; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: temperatures_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-COMMENT ON TABLE vr IS 'Radial velocity';
+ALTER SEQUENCE temperatures_id_seq OWNED BY temperatures.id;
 
 
 --
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY stars ALTER COLUMN id SET DEFAULT nextval('"Stars_ID_seq"'::regclass);
+ALTER TABLE ONLY magnitudes ALTER COLUMN id SET DEFAULT nextval('magnitudes_id_seq'::regclass);
 
 
 --
--- Name: Stars_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY names ALTER COLUMN id SET DEFAULT nextval('names_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY stars ALTER COLUMN id SET DEFAULT nextval('stars_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY temperatures ALTER COLUMN id SET DEFAULT nextval('temperatures_id_seq'::regclass);
+
+
+--
+-- Name: magnitudes_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY magnitudes
+    ADD CONSTRAINT magnitudes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: names_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY names
+    ADD CONSTRAINT names_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stars_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
 ALTER TABLE ONLY stars
-    ADD CONSTRAINT "Stars_pkey" PRIMARY KEY (name);
+    ADD CONSTRAINT stars_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: temperatures_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY temperatures
+    ADD CONSTRAINT temperatures_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: magnitudes_star_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY magnitudes
+    ADD CONSTRAINT magnitudes_star_id_fkey FOREIGN KEY (star_id) REFERENCES stars(id);
+
+
+--
+-- Name: names_star_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY names
+    ADD CONSTRAINT names_star_id_fkey FOREIGN KEY (star_id) REFERENCES stars(id);
+
+
+--
+-- Name: temperatures_star_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY temperatures
+    ADD CONSTRAINT temperatures_star_id_fkey FOREIGN KEY (star_id) REFERENCES stars(id);
 
 
 --
