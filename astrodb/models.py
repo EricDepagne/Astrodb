@@ -16,16 +16,12 @@ from peewee import *
 from playhouse.shortcuts import ManyToManyField
 
 
-
-
 # Uncomment this to see executed SQL queries from peewee ORM
 import logging
 logging.basicConfig(
     format='[%(asctime)-15s] [%(name)s] %(levelname)s]: %(message)s',
     level=logging.DEBUG
 )
-
-
 
 
 def decimal_round(value, decimal_places=2):
@@ -36,12 +32,17 @@ def decimal_round(value, decimal_places=2):
     return decimal.Decimal(value).quantize(q)
 
 
-# Dummy connector using sqlite3 for demo, will have to do it using some user 
+# Dummy connector using sqlite3 for demo, will have to do it using some user
 # settings to use another database type
-database_filepath = 'my_app.db'
-db = SqliteDatabase(database_filepath)
+#database_filepath = 'my_app.db'
+#db = SqliteDatabase(database_filepath)
+#
+database_filepath = 'AstroTest'
+user = 'postgres'
+host = 'localhost'
+port = 5432
 
-
+db = PostgresqlDatabase(database_filepath, user=user, host=host, port=port)
 
 
 class BaseModel(Model):
@@ -55,23 +56,24 @@ class Name(BaseModel):
     """
     name = CharField(max_length=50, unique=True, null=False)
 
+
 class Star(BaseModel):
     """
     Star model
-    
+
     Can have multiple names that are not unique (Many stars can share the same names), so we use a ManyToMany relation
-    
+
     What's a ManyToMany relation (or m2m relation) ?
     ************************************************
-    
+
     ManyToMany means "Multiple object can relates on multiple object relations"
-    
+
     """
     names = ManyToManyField(Name, related_name='stars')
     right_ascension = DoubleField(default=0.0, null=False)
     declination = DoubleField(default=0.0, null=False)
 
-# Automatic through model for m2m (Many To Many) "name" relation 
+# Automatic through model for m2m (Many To Many) "name" relation
 StarName = Star.names.get_through_model()
 
 
@@ -97,7 +99,6 @@ class Abundance(BaseModel):
     value = DoubleField(default=0.0, null=False)
     carbon = DoubleField(default=0.0, null=False)
     oxygen = DoubleField(default=0.0, null=False)
-
 
 
 """
@@ -167,9 +168,8 @@ for name_pattern in ["Terminator", "Esteban", "Sterotata"]:
     name_results = Name.select().where(Name.name.startswith(name_pattern))
     print ">>>", name_results.count()
     print ">>>", [item.name for item in name_results]
-    name_store[name_pattern] = list(name_results) # For interpretation of lazy query into python list
+    name_store[name_pattern] = list(name_results)  # For interpretation of lazy query into python list
     print
-
 
 
 """
@@ -183,18 +183,18 @@ star.names.add(Name.get(Name.name == "Foo"))
 print
 
 print "=== Creating some Star objects ==="
-for k,v in name_store.items():
+for k, v in name_store.items():
     # Prepare some random floating values
     right_ascension = decimal_round(random.uniform(0, 42))
     declination = decimal_round(random.uniform(0, 42))
-    
+
     names_render = ", ".join([item.name for item in v])
     print u"    └── Adding star: ra({ra}); dec({dec}); names({names});".format(ra=right_ascension, dec=declination, names=names_render)
-    
+
     # Create the new star object
     star = Star(right_ascension=right_ascension, declination=declination)
     star.save()
-    # Then add it some names (m2m field need the object id so we can only 
+    # Then add it some names (m2m field need the object id so we can only
     # add relations AFTER the object is created)
     for item in v:
         star.names.add(item)
