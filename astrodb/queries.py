@@ -5,7 +5,9 @@ Some stuff to query the database
 # Global imports
 import sys
 
-
+# Special imports
+from itertools import chain
+import collections
 # sql import
 import psycopg2
 from psycopg2.extensions import AsIs
@@ -183,8 +185,7 @@ def is_entry_valid(tableout, field, value):
     The number of arguments and their type is checked.
     If they mismatch, False is returned, and the database() function will not do anything.
     """
-    if not isinstance(field, tuple) and not isinstance(value,tuple):
-        print ("no tuple, good")
+    if not isinstance(field, tuple) and not isinstance(value, tuple):
         return True
     if type(field) != type(value):
         print("Arguments for database modification mismatch")
@@ -197,7 +198,6 @@ def is_entry_valid(tableout, field, value):
     # Checking if the fields are in the database.
     for key in DBScheme[tableout]:
         match_rows = [j for j in field if j in DBScheme[tableout]]
-        print match_rows
         if not match_rows:
             print("Field does not exist in the database.")
             return False
@@ -208,31 +208,16 @@ def is_entry_valid(tableout, field, value):
     return True
 
 
-
-
 def database(action, tableout, star, field, value, tablein='stars'):
     isvalid = is_entry_valid(tableout, field, value)
-    print("valid : {0}".format(isvalid))
     if not isvalid:
         sys.exit()
 
-    # Verifying the validity of the input.
-#     validity = 0
-#     if tableout not in DBScheme.keys():
-#         validity = 1
-#     if tableout in DBScheme.keys() and field not in DBScheme[tableout]:
-#         validity = 2
-#     if validity:
-#         if validity == 1:
-#             print("Table {0} does not exist. Try one of {1}".format(tableout, DBScheme.keys()))
-#         if validity == 2:
-#             print ("Field {0} in table {1} does not exist. Try one of {2}".format(field, tableout, DBScheme[tableout]))
-#         #sys.exit("Input not matching the database, exiting")
-    # Input is valid, let´ s proceed.
+    # Input is valid, let's proceed.
 
     if action == 'delete' or action == 'del':
         removeparameter(tablein, tableout, star, field, value)
-    elif action == 'insert':
+    elif action == 'insert' or action == 'add':
         addparameter(tablein, tableout, star, field, value)
     else:
         print("Action should be : delete or insert. Or use the function list() to get all infos concerning one object.")
@@ -338,6 +323,15 @@ def addparameter(tablein, tableout, star, field, value):
     connection.commit()
 
 
+def flatten(list):
+    for element in list:
+        if isinstance(element, collections.Iterable) and not isinstance(element, basestring):
+            for sub in flatten(element):
+                yield sub
+        else:
+            yield element
+
+
 def checkentry(table, field, id, value):
     present = False
     print ("Checking input data: {0}, {1}, {2}".format(table, field, value))
@@ -354,23 +348,30 @@ def checkentry(table, field, id, value):
         cursor.execute(SQL, data)
         result = cursor.fetchall()
 # We check that the value to be insered is not here already.
-        print value, result
-        for index, val in enumerate(result):
-            print ("resultat", result)
-            print index, val, type(value), result[index][0]
-            try:
-                if value in result[index][0]:
-                    print "in if", list(value)
-                    present = True
-            except TypeError:
-                #    if value == result[index][0][0]:
-                print "in except"
-                present = True
+        # print value, result
+# Transforming the output and the input into lists.
+        #result_list = list(chain.from_iterable(result))
+        print("results : ", result, type(result))
+        # we need to flatten the results into a list.
+        dbout = [i for i in flatten(result)]
+        dbin = [i for i in flatten(value)]
+# TODO check the input types before flattening.
+        print "In : {0} and out :{1}".format(dbin, dbout)
+#        for index, val in enumerate(result):
+#            print ("resultat", result)
+#            print (index, type(val))
+#             try:
+#                 if value in result[index][0]:
+#                     print "in if", list(value)
+#                     present = True
+#             except TypeError:
+#                 #    if value == result[index][0][0]:
+#                 print "in except"
+#                 present = True
     except psycopg2.ProgrammingError as error:
         print error.pgerror
         print"Error, rolling back"
         connection.rollback()
-    print present
     return present
 
 
