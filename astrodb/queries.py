@@ -2,6 +2,9 @@
 """
 Some stuff to query the database
 """
+# Global imports
+import sys
+
 
 # sql import
 import psycopg2
@@ -107,8 +110,11 @@ def update(star, ra, dec):
     print ra, dec
     c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
     print c.ra.degree, c.dec.degree
-    cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
-    connection.commit()
+    try:
+        cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
+        connection.commit()
+    except:
+        connection.rollback()
     return
 
 
@@ -171,20 +177,57 @@ def info(star):
     return data
 
 
+def is_entry_valid(tableout, field, value):
+    """
+    This function will test that the arguments passed for database modification are correct.
+    The number of arguments and their type is checked.
+    If they mismatch, False is returned, and the database() function will not do anything.
+    """
+    if not isinstance(field, tuple) and not isinstance(value,tuple):
+        print ("no tuple, good")
+        return True
+    if type(field) != type(value):
+        print("Arguments for database modification mismatch")
+        print("type of field : {0} and type of value :{1}".format(type(field), type(value)))
+        return False
+    if isinstance(field, tuple):
+        if len(field) != len(value):
+            print"Number of parameters mismatch. Aborting."
+            return False
+    # Checking if the fields are in the database.
+    for key in DBScheme[tableout]:
+        match_rows = [j for j in field if j in DBScheme[tableout]]
+        print match_rows
+        if not match_rows:
+            print("Field does not exist in the database.")
+            return False
+        if len(match_rows) != len(field):
+            print("Some fields do not exist in the database")
+            return False
+
+    return True
+
+
+
+
 def database(action, tableout, star, field, value, tablein='stars'):
+    isvalid = is_entry_valid(tableout, field, value)
+    print("valid : {0}".format(isvalid))
+    if not isvalid:
+        sys.exit()
 
     # Verifying the validity of the input.
-    validity = 0
-    if tableout not in DBScheme.keys():
-        validity = 1
-    if tableout in DBScheme.keys() and field not in DBScheme[tableout]:
-        validity = 2
-    if validity:
-        if validity == 1:
-            print("Table {0} does not exist. Try one of {1}".format(tableout, DBScheme.keys()))
-        if validity == 2:
-            print ("Field {0} in table {1} does not exist. Try one of {2}".format(field, tableout, DBScheme[tableout]))
-        #sys.exit("Input not matching the database, exiting")
+#     validity = 0
+#     if tableout not in DBScheme.keys():
+#         validity = 1
+#     if tableout in DBScheme.keys() and field not in DBScheme[tableout]:
+#         validity = 2
+#     if validity:
+#         if validity == 1:
+#             print("Table {0} does not exist. Try one of {1}".format(tableout, DBScheme.keys()))
+#         if validity == 2:
+#             print ("Field {0} in table {1} does not exist. Try one of {2}".format(field, tableout, DBScheme[tableout]))
+#         #sys.exit("Input not matching the database, exiting")
     # Input is valid, let´ s proceed.
 
     if action == 'delete' or action == 'del':
@@ -227,12 +270,17 @@ def removeparameter(tablein, tableout, star, field, value):
     # print (cursor.mogrify(SQL, test))
     # print present
 
-    present = True
+    # present = True
     if present:
         print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
         # cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
-        print cursor.mogrify(SQL, test)
-        cursor.execute(SQL, test)
+        try:
+            print cursor.mogrify(SQL, test)
+            #cursor.execute(SQL, test)
+        except psycopg2.ProgrammingError as error:
+            print error.pgerror
+            print"Error, rolling back"
+            connection.rollback()
     else:
         print("Value {0} not in table {1} for star {2}".format(value, tableout, star))
     connection.commit()
@@ -245,42 +293,43 @@ def addparameter(tablein, tableout, star, field, value):
 # Get the ID of the star
     id = getid(star)[0][0]
     present = checkentry(tableout, field, id, value)
+    print present
 # Preparing the insert SQL query.
-    query = ""
-    rows = ""
-    values = ""
-    coma = ""
-    test = {'table': AsIs(tableout)}
-    if isinstance(field, str):
-        parameternumber = 1
-    if isinstance(field, tuple):
-        parameternumber = len(field)
-    for i in range(parameternumber):
-        row = 'row'+str(i)
-        val = 'value'+str(i)
-        if i > 0:
-            coma = ","
-        rows = rows + coma + "%("+row+")s"
-        values = values + coma + "%("+val+")s"
+    if present is not False:
+        query = ""
+        rows = ""
+        values = ""
+        coma = ""
+        test = {'table': AsIs(tableout)}
         if isinstance(field, str):
-            test.update({row: AsIs(field)})
-            test.update({val: value})
+            parameternumber = 1
         if isinstance(field, tuple):
-            test.update({row: AsIs(field[i])})
-            test.update({val: AsIs(value[i])})
-    rows = "(star_id, " + rows + ")"
-    values = "(" + str(id) + ", " + values + ")"
-    #print rows
-    #print values
-    #print test
-    query = "%(table)s " + rows + " values " + values
+            parameternumber = len(field)
+        for i in range(parameternumber):
+            row = 'row'+str(i)
+            val = 'value'+str(i)
+            if i > 0:
+                coma = ","
+            rows = rows + coma + " %("+row+")s"
+            values = values + coma + " %("+val+")s"
+            if isinstance(field, str):
+                test.update({row: AsIs(field)})
+                test.update({val: value})
+            if isinstance(field, tuple):
+                test.update({row: AsIs(field[i])})
+                test.update({val: AsIs(value[i])})
+        rows = "(star_id," + rows + ")"
+        values = "(" + str(id) + "," + values + ")"
+        #print rows
+        #print values
+        #print test
+        query = "%(table)s " + rows + " values " + values
 
 # query template
-    SQL = "insert into " + query
+        SQL = "insert into " + query
     #print SQL
-    if not present:
         print(cursor.mogrify(SQL, test))
-        cursor.execute(SQL, test)
+        #cursor.execute(SQL, test)
         #cursor.execute("insert into %s %s values (%s)", (AsIs(tableout), AsIs(f), v))
 
         #cursor.execute("insert into %s (id, %s) values ((%s), (%s) )", (AsIs(tableout), AsIs(field), id, value))
@@ -299,20 +348,29 @@ def checkentry(table, field, id, value):
     if isinstance(field, tuple):
         f1 = [AsIs(i) for i in field]
     data = (f1, t1, id)
-    print cursor.mogrify(SQL, data)
-    cursor.execute(SQL, data)
-    result = cursor.fetchall()
-
-# We check that the value to be insered is not here already.
     present = False
-    # print value, result[0][0]
-    for index, val in enumerate(result):
-        try:
-            if list(value) == result[index][0]:
+    try:
+        print cursor.mogrify(SQL, data)
+        cursor.execute(SQL, data)
+        result = cursor.fetchall()
+# We check that the value to be insered is not here already.
+        print value, result
+        for index, val in enumerate(result):
+            print ("resultat", result)
+            print index, val, type(value), result[index][0]
+            try:
+                if value in result[index][0]:
+                    print "in if", list(value)
+                    present = True
+            except TypeError:
+                #    if value == result[index][0][0]:
+                print "in except"
                 present = True
-        except TypeError:
-            if value == result[index][0][0]:
-                present = True
+    except psycopg2.ProgrammingError as error:
+        print error.pgerror
+        print"Error, rolling back"
+        connection.rollback()
+    print present
     return present
 
 
