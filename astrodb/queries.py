@@ -6,8 +6,8 @@ Some stuff to query the database
 import sys
 
 # Special imports
-from itertools import chain
 import collections
+
 # sql import
 import psycopg2
 from psycopg2.extensions import AsIs
@@ -225,7 +225,7 @@ def database(action, tableout, star, field, value, tablein='stars'):
 
 def removeparameter(tablein, tableout, star, field, value):
     id = getid(star)
-    present = checkentry(tableout, field, id, value)
+    present, field, value = checkentry(tableout, field, id, value)
 # Preparing the delete SQL query.
 
 #    query = '%(row0)s = %(value0)s'
@@ -277,10 +277,12 @@ def addparameter(tablein, tableout, star, field, value):
     """
 # Get the ID of the star
     id = getid(star)[0][0]
-    present = checkentry(tableout, field, id, value)
-    print present
+    present, field, newvalue = checkentry(tableout, field, id, value)
+    print ("new values : ", present, field, value)
+    print
+
 # Preparing the insert SQL query.
-    if present is not False:
+    if present is False:
         query = ""
         rows = ""
         values = ""
@@ -299,10 +301,10 @@ def addparameter(tablein, tableout, star, field, value):
             values = values + coma + " %("+val+")s"
             if isinstance(field, str):
                 test.update({row: AsIs(field)})
-                test.update({val: value})
+                test.update({val: newvalue})
             if isinstance(field, tuple):
                 test.update({row: AsIs(field[i])})
-                test.update({val: AsIs(value[i])})
+                test.update({val: AsIs(newvalue[i])})
         rows = "(star_id," + rows + ")"
         values = "(" + str(id) + "," + values + ")"
         #print rows
@@ -314,22 +316,27 @@ def addparameter(tablein, tableout, star, field, value):
         SQL = "insert into " + query
     #print SQL
         print(cursor.mogrify(SQL, test))
-        #cursor.execute(SQL, test)
-        #cursor.execute("insert into %s %s values (%s)", (AsIs(tableout), AsIs(f), v))
+        cursor.execute(SQL, test)
 
-        #cursor.execute("insert into %s (id, %s) values ((%s), (%s) )", (AsIs(tableout), AsIs(field), id, value))
     else:
         print("Value {0} already in table {1} for star {2}".format(value, tableout, star))
     connection.commit()
 
 
-def flatten(list):
+def flattenlist(list):
+    # original code found here: http://stackoverflow.com/a/2158532
+# This function unnests a list into a simple list
     for element in list:
         if isinstance(element, collections.Iterable) and not isinstance(element, basestring):
-            for sub in flatten(element):
+            for sub in flattenlist(element):
                 yield sub
         else:
             yield element
+
+
+def checkentry2():
+    # Use the database properties to remove duplicates after insertion, rather than trying to prevent their insertion.
+    pass
 
 
 def checkentry(table, field, id, value):
@@ -344,35 +351,44 @@ def checkentry(table, field, id, value):
     data = (f1, t1, id)
     present = False
     try:
-        print cursor.mogrify(SQL, data)
+        #print cursor.mogrify(SQL, data)
         cursor.execute(SQL, data)
         result = cursor.fetchall()
 # We check that the value to be insered is not here already.
         # print value, result
 # Transforming the output and the input into lists.
-        #result_list = list(chain.from_iterable(result))
-        print("results : ", result, type(result))
-        # we need to flatten the results into a list.
-        dbout = [i for i in flatten(result)]
-        dbin = [i for i in flatten(value)]
-# TODO check the input types before flattening.
-        print "In : {0} and out :{1}".format(dbin, dbout)
-#        for index, val in enumerate(result):
-#            print ("resultat", result)
-#            print (index, type(val))
-#             try:
-#                 if value in result[index][0]:
-#                     print "in if", list(value)
-#                     present = True
-#             except TypeError:
-#                 #    if value == result[index][0][0]:
-#                 print "in except"
-#                 present = True
+        a = [i for i in flattenlist(result)]
+        if isinstance(value, int) or isinstance(value, str):
+            b = value
+        else:
+            b = [i for i in flattenlist(value)]
+        #print "In : {0} and out :{1}".format(b, a)
+        if isinstance(b, int) or isinstance(b, str):
+            #print (a, b, field)
+            if b in a:
+                print("present")
+                present = True
+        if isinstance(b, list):
+            print type(a), type(b), type(field)
+            f = [i for i in flattenlist(field)]
+            #print a,b,f
+            c = [i for i in a if i in b]
+            for val in c:
+                # We remove the duplicated values, and remove the corresponding field.
+                f.remove(f[b.index(val)])
+                b.remove(val)
+            field = tuple(f)
+            value = b
+            #print("New values:", a,value,field)
+            if not field:
+                # Data already
+                present = True
+
     except psycopg2.ProgrammingError as error:
         print error.pgerror
         print"Error, rolling back"
         connection.rollback()
-    return present
+    return present, field, value
 
 
 def getid(star):
