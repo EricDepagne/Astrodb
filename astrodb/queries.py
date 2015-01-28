@@ -315,7 +315,7 @@ def addparameter(tablein, tableout, star, field, value):
 # query template
         SQL = "insert into " + query
     #print SQL
-        print(cursor.mogrify(SQL, test))
+        #print(cursor.mogrify(SQL, test))
         cursor.execute(SQL, test)
 
     else:
