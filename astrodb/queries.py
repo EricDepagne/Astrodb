@@ -109,9 +109,9 @@ def update(star, ra, dec):
     """
     Update the ra and dec for a star, if need be
     """
-    print ra, dec
+    #print ra, dec
     c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
-    print c.ra.degree, c.dec.degree
+    #print c.ra.degree, c.dec.degree
     try:
         cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
         connection.commit()
@@ -278,8 +278,8 @@ def addparameter(tablein, tableout, star, field, value):
 # Get the ID of the star
     id = getid(star)[0][0]
     present, field, newvalue = checkentry(tableout, field, id, value)
-    print ("new values : ", present, field, value)
-    print
+    # print ("new values : ", present, field, value)
+    # print
 
 # Preparing the insert SQL query.
     if present is False:
@@ -369,7 +369,7 @@ def checkentry(table, field, id, value):
                 print("present")
                 present = True
         if isinstance(b, list):
-            print type(a), type(b), type(field)
+            # print type(a), type(b), type(field)
             f = [i for i in flattenlist(field)]
             #print a,b,f
             c = [i for i in a if i in b]
