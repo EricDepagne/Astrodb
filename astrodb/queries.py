@@ -108,15 +108,17 @@ def listofstars():
 def update(star, ra, dec):
     """
     Update the ra and dec for a star, if need be
+    RA and DEC should ne entered as floats.
     """
-    #print ra, dec
-    c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree)
-    #print c.ra.degree, c.dec.degree
+    print ra, dec
     try:
-        cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
-        connection.commit()
-    except:
+        SQL = 'update stars set right_ascension = (%s), declination = (%s) where name = (%s)'
+        data = (ra, dec, star)
+        cursor.execute(SQL, data)
+        #cursor.execute("update stars set right_ascension = %s, declination = %s where name = %s", (AsIs(c.ra.degree), AsIs(c.dec.degree), star))
+    except psycopg2.ProgrammingError:
         connection.rollback()
+    connection.commit()
     return
 
 
@@ -156,7 +158,7 @@ def info(star):
         if table == 'stars':
             star_id = 'id'
         query = "select " + p + " from " + table + " where " + star_id + " = " + str(id)
-        # print cursor.mogrify(query, d)
+        print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
         # print res
@@ -177,6 +179,8 @@ def info(star):
         else:
             for i in range(len(DBScheme[table])):
                 data.update({DBScheme[table][i]: [j[i] for j in res]})
+# Removing the star_id key, which is internal to the database and has no meaning outside
+                data.pop('star_id', None)
 
     return data
 
@@ -221,6 +225,9 @@ def database(action, tableout, star, field, value, tablein='stars'):
         removeparameter(tablein, tableout, star, field, value)
     elif action == 'insert' or action == 'add':
         addparameter(tablein, tableout, star, field, value)
+    elif action == 'update':
+        print "update", star, field, value
+        update(star, field, value)
     else:
         print("Action should be : delete or insert. Or use the function list() to get all infos concerning one object.")
 
