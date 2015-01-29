@@ -195,7 +195,7 @@ def is_entry_valid(tableout, field, value):
         return True
     if type(field) != type(value):
         print("Arguments for database modification mismatch")
-        print(("type of field : {0} and type of value :{1}".format(type(field), type(value))))
+        print("type of field : {0} and type of value :{1}".format(type(field), type(value)))
         return False
     if isinstance(field, tuple):
         if len(field) != len(value):
@@ -266,7 +266,7 @@ def removeparameter(tablein, tableout, star, field, value):
 
     # present = True
     if present:
-        print(("Deleting {0} in table {1} for star {2}".format(value, tableout, star)))
+        print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
         # cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
         try:
             print(cursor.mogrify(SQL, test))
@@ -350,7 +350,7 @@ def checkentry2():
 
 def checkentry(table, field, id, value):
     present = False
-    print(("Checking input data: {0}, {1}, {2}".format(table, field, value)))
+    print("Checking input data: {0}, {1}, {2}".format(table, field, value))
     SQL = "select %s from %s where star_id = %s"
     t1 = AsIs(table)
     if isinstance(field, str):
