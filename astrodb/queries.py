@@ -163,6 +163,8 @@ def info(star):
         if table == 'stars':
             # This is the only table with multiply unique columns.
             # print res[0][1], res[0][2]
+            if not res[0][1]:
+                continue
             c = SkyCoord(ra=res[0][1]*u.degree, dec=res[0][2]*u.degree)
             for i, key in enumerate(DBScheme[table]):
                 if 'ascension' in key:
