@@ -43,7 +43,7 @@ def usage():
     """
     Temporary help
     """
-    print """
+    print("""
     This module creates a series of functions to access and update a database of stars.
     The following functions are available:
 
@@ -86,7 +86,7 @@ def usage():
     database('insert', 'names', 'BS 16929-005', 'alternatenames', '2MASS J13032947+3351091' )
 
 
-    """
+    """)
 
 
 def clean():
@@ -110,7 +110,7 @@ def update(star, ra, dec):
     Update the ra and dec for a star, if need be
     RA and DEC should ne entered as floats.
     """
-    print ra, dec
+    print(ra, dec)
     try:
         SQL = 'update stars set right_ascension = (%s), declination = (%s) where name = (%s)'
         data = (ra, dec, star)
@@ -143,10 +143,10 @@ def info(star):
     tables = []
     data = {}
 
-    for key in DBScheme.keys():
+    for key in list(DBScheme.keys()):
         for i in range(len(DBScheme[key])):
             data.update({DBScheme[key][i]: ''})
-    for key in DBScheme.keys():
+    for key in list(DBScheme.keys()):
         tables.append(key)
     for table in tables:
 # preparing the query
@@ -158,7 +158,7 @@ def info(star):
         if table == 'stars':
             star_id = 'id'
         query = "select " + p + " from " + table + " where " + star_id + " = " + str(id)
-        print cursor.mogrify(query, d)
+        #print cursor.mogrify(query, d)
         cursor.execute(query, d)
         res = cursor.fetchall()
         # print res
@@ -195,11 +195,11 @@ def is_entry_valid(tableout, field, value):
         return True
     if type(field) != type(value):
         print("Arguments for database modification mismatch")
-        print("type of field : {0} and type of value :{1}".format(type(field), type(value)))
+        print(("type of field : {0} and type of value :{1}".format(type(field), type(value))))
         return False
     if isinstance(field, tuple):
         if len(field) != len(value):
-            print"Number of parameters mismatch. Aborting."
+            print("Number of parameters mismatch. Aborting.")
             return False
     # Checking if the fields are in the database.
     for key in DBScheme[tableout]:
@@ -226,7 +226,7 @@ def database(action, tableout, star, field, value, tablein='stars'):
     elif action == 'insert' or action == 'add':
         addparameter(tablein, tableout, star, field, value)
     elif action == 'update':
-        print "update", star, field, value
+        print("update", star, field, value)
         update(star, field, value)
     else:
         print("Action should be : delete or insert. Or use the function list() to get all infos concerning one object.")
@@ -266,17 +266,17 @@ def removeparameter(tablein, tableout, star, field, value):
 
     # present = True
     if present:
-        print("Deleting {0} in table {1} for star {2}".format(value, tableout, star))
+        print(("Deleting {0} in table {1} for star {2}".format(value, tableout, star)))
         # cursor.execute(" delete from %s where id=(%s) and %s = (%s)", (AsIs(tableout), id, AsIs(field), value))
         try:
-            print cursor.mogrify(SQL, test)
+            print(cursor.mogrify(SQL, test))
             #cursor.execute(SQL, test)
         except psycopg2.ProgrammingError as error:
-            print error.pgerror
-            print"Error, rolling back"
+            print(error.pgerror)
+            print("Error, rolling back")
             connection.rollback()
     else:
-        print("Value {0} not in table {1} for star {2}".format(value, tableout, star))
+        print(("Value {0} not in table {1} for star {2}".format(value, tableout, star)))
     connection.commit()
 
 
@@ -328,7 +328,7 @@ def addparameter(tablein, tableout, star, field, value):
         cursor.execute(SQL, test)
 
     else:
-        print("Value {0} already in table {1} for star {2}".format(value, tableout, star))
+        print(("Value {0} already in table {1} for star {2}".format(value, tableout, star)))
     connection.commit()
 
 
@@ -336,7 +336,7 @@ def flattenlist(list):
     # original code found here: http://stackoverflow.com/a/2158532
 # This function unnests a list into a simple list
     for element in list:
-        if isinstance(element, collections.Iterable) and not isinstance(element, basestring):
+        if isinstance(element, collections.Iterable) and not isinstance(element, str):
             for sub in flattenlist(element):
                 yield sub
         else:
@@ -350,7 +350,7 @@ def checkentry2():
 
 def checkentry(table, field, id, value):
     present = False
-    print ("Checking input data: {0}, {1}, {2}".format(table, field, value))
+    print(("Checking input data: {0}, {1}, {2}".format(table, field, value)))
     SQL = "select %s from %s where star_id = %s"
     t1 = AsIs(table)
     if isinstance(field, str):
@@ -394,8 +394,8 @@ def checkentry(table, field, id, value):
                 present = True
 
     except psycopg2.ProgrammingError as error:
-        print error.pgerror
-        print"Error, rolling back"
+        print(error.pgerror)
+        print("Error, rolling back")
         connection.rollback()
     return present, field, value
 
