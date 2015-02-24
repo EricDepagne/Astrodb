@@ -79,7 +79,7 @@ def usage():
     table :string. Where is the data to be inserted
     star : string. Name of the stars whose record is to be updated
     field : string. Property to be updated.
-    value: string of float. The type depends on the property.
+    value: string or int. The type depends on the property.
 
     Example :
     database('insert','temperatures', 'HE 1506-0113', 'temperature', 5016)
@@ -225,11 +225,17 @@ def database(action, tableout, star, field, value, tablein='stars'):
         removeparameter(tablein, tableout, star, field, value)
     elif action == 'insert' or action == 'add':
         addparameter(tablein, tableout, star, field, value)
+    elif action == 'purge' or action == 'clean':
+        cleartable(tablein, tableout, star)
     elif action == 'update':
         print("update", star, field, value)
         update(star, field, value)
     else:
         print("Action should be : delete or insert. Or use the function list() to get all infos concerning one object.")
+
+
+def cleartable(tablein, tablout, star):
+    print ("purging database of data for star {0}".format(star))
 
 
 def removeparameter(tablein, tableout, star, field, value):
