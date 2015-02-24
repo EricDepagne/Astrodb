@@ -9,8 +9,11 @@ import sys
 import collections
 
 # sql import
-import psycopg2
-from psycopg2.extensions import AsIs
+# Postgresq
+#import psycopg2
+#from psycopg2.extensions import AsIs
+#MySQL
+from mysql import connector
 
 # Astro imports
 from astropy.coordinates import SkyCoord
