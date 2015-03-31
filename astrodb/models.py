@@ -34,15 +34,15 @@ def decimal_round(value, decimal_places=2):
 
 # Dummy connector using sqlite3 for demo, will have to do it using some user
 # settings to use another database type
-#database_filepath = 'my_app.db'
-#db = SqliteDatabase(database_filepath)
+database_filepath = 'my_app.db'
+db = SqliteDatabase(database_filepath)
 #
-database_filepath = 'AstroTest'
-user = 'postgres'
-host = 'localhost'
-port = 5432
-
-db = PostgresqlDatabase(database_filepath, user=user, host=host, port=port)
+#database_filepath = 'AstroTest'
+#user = 'postgres'
+#host = 'localhost'
+#port = 5432
+#
+#db = PostgresqlDatabase(database_filepath, user=user, host=host, port=port)
 
 
 class BaseModel(Model):
