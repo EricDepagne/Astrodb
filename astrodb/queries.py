@@ -9,30 +9,25 @@ import sys
 import collections
 
 # sql import
-# Postgresq
-#import psycopg2
-#from psycopg2.extensions import AsIs
-#MySQL
-from mysql import connector
+import peewee as pw
+from playhouse.shortcuts import ManyToManyField
+import Stellar
 
 # Astro imports
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
 
-user = 'postgres'
-host = 'localhost'
-port = 5432
-
+#database = 'Stellar'
+print (Stellar.Star)
 # Connection to the local database.
-connection = psycopg2.connect(database="AstroTest",
-                              user=user,
-                              host=host,
-                              port=port)
-cursor = connection.cursor()
+#mydb = pw.MySQLDatabase(database=database,
+#                        user=user,
+#                        host=host)
+#cursor = connection.cursor()
 
 # First, we list all tables available in the database.
-cursor.execute("select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';")
+#cursor.execute("select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';")
 # We list all the columns in each table.
 DBScheme = {}
 for i in cursor.fetchall():
