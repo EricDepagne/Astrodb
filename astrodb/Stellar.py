@@ -5,13 +5,21 @@ Some stuff to query the database
 # System imports
 import base64
 import configparser
+import os
+import sys
 # peewee imports
 from peewee import Model, MySQLDatabase
 from peewee import FloatField, CharField, PrimaryKeyField, IntegerField, ForeignKeyField, DecimalField
 
 # Reading the configuration file
 Config = configparser.ConfigParser()
-Config.read('/home/eric/Science/Projets/Database/AstroConfig')
+
+configfile = os.path.expanduser("~") + '/.Astro/config'
+if os.path.isfile(configfile):
+    Config.read(configfile)
+else:
+    print('A MySQL configuration file is required. The file should be located be ~/Astro/config . For safety reasons, it should have as little permissions as possible. The file should be in the INI format, with a MySQL section that contains the username and password of the user that will connect to the database')
+    sys.exit(0)
 user = Config.get('MySQL', 'user')
 password = base64.encodebytes(bytes(Config.get('MySQL', 'passwd'), "utf-8"))
 
