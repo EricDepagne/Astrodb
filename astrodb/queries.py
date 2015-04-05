@@ -59,16 +59,18 @@ if not Present:
         Simbad.add_votable_fields(Motion)
 
 
-
 def query(star):
-    return Simbad.query_object(star)
+    return np.array(Simbad.query_objectids(star)), np.array(Simbad.query_object(star))
+
 
 def correctname(star):
     """
-    Modoify the name of some stars so it matches the simbad naming scheme
+    Modify the name of some stars so it matches the simbad naming scheme
     """
+    # Correction for the BPS stars.
     if star.startswith('BS') or star.startswith('CS'):
         star = 'BPS ' + star
+    #
     return star
 
 
@@ -79,23 +81,31 @@ def onlinedata(star):
     data = None
     if isinstance(star, list):
         for s in star:
-#  Stacking the results one after each in a numpy array.
+            # Stacking the results one after each in a numpy array.
             s = correctname(s)
             print('Star : {0}'.format(s))
+            names, d = query(s)
+            print('Alternate names: {0}'.format(names))
             if data is None:
-                data = np.array(query(s))
+                data = np.array(d)
             else:
-                data = np.hstack((data, query(s)))
+                data = np.hstack((data, d))
     else:
-        data = query(correctname(star))
+        names, data = query(correctname(star))
+        print('Alternate names: {0}'.format(names))
+        print('Data : {0}'.format(data))
+    print(type(names), type(data))
+    print(names.shape, data.shape)
+    test = np.concatenate((names, data))
+    print(test.shape)
 # Before returning the data, since simbad returns byte objects for the name, let's change that to strings.
 # we create a lambda function that will convert byte to str
     f = lambda x: x.decode()
     df = pd.DataFrame(data)
     df['MAIN_ID'] = df['MAIN_ID'].map(f)
-# Coordinates are stored in the databse as DEcimal() objects, so we transform them into a decimal.
+# Coordinates are stored in the databse as Decimal() objects, so we transform them into a decimal.
 # We use astropy SkyCoords objects to do so.
-    coords = SkyCoord(ra=df['RA'], dec=df['DEC'], unit=(u.hourangle, u.deg))
+    # coords = SkyCoord(ra=df['RA'], dec=df['DEC'], unit=(u.hourangle, u.deg))
     for i in range(df.shape[0]):
         ra = df['RA'][i]
         dec = df['DEC'][i]
@@ -110,7 +120,7 @@ def decimalformat(value):
     """
     Allows the Decimal numbers to have the proper format
     """
-    getcontext().prec=8
+    getcontext().prec = 8
     v = str(value)
     return Decimal(v)/Decimal('1.000000')
 
