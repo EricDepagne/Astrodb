@@ -60,7 +60,13 @@ if not Present:
 
 
 def query(star):
-    return np.array(Simbad.query_objectids(star)), np.array(Simbad.query_object(star))
+    n = Simbad.query_objectids(star)
+    d = Simbad.query_object(star)
+# Simbad returns bytecode. Changing it to strings.
+    n.convert_bytestring_to_unicode()
+# Transforming the n Astropy Table into a list
+    t = [name for name in n['ID']]
+    return t,d
 
 
 def correctname(star):
@@ -76,7 +82,7 @@ def correctname(star):
 
 def onlinedata(star):
     """
-    Query the Simbad database to get the information about the star.
+    Query the Simbad database to get the information about the star(s)(s).
     """
     data = None
     if isinstance(star, list):
@@ -85,23 +91,23 @@ def onlinedata(star):
             s = correctname(s)
             print('Star : {0}'.format(s))
             names, d = query(s)
-            print('Alternate names: {0}'.format(names))
             if data is None:
                 data = np.array(d)
             else:
                 data = np.hstack((data, d))
     else:
-        names, data = query(correctname(star))
-        print('Alternate names: {0}'.format(names))
-        print('Data : {0}'.format(data))
-    print(type(names), type(data))
-    print(names.shape, data.shape)
-    test = np.concatenate((names, data))
-    print(test.shape)
+        print('Star : {0}'.format(star))
+        names, d = query(correctname(star))
+        data = np.array(d)
+    ns = pd.DataFrame(names)
+    print(ns)
+    df = pd.DataFrame(data)
+    df = pd.concat([df, ns])
+    print(df)
+    #print(ndf, df)
 # Before returning the data, since simbad returns byte objects for the name, let's change that to strings.
 # we create a lambda function that will convert byte to str
     f = lambda x: x.decode()
-    df = pd.DataFrame(data)
     df['MAIN_ID'] = df['MAIN_ID'].map(f)
 # Coordinates are stored in the databse as Decimal() objects, so we transform them into a decimal.
 # We use astropy SkyCoords objects to do so.
