@@ -14,6 +14,7 @@ from decimal import getcontext
 # Astronomical imports
 from astroquery.simbad import Simbad
 from astropy.coordinates import SkyCoord
+from astropy.table import Column
 from astropy import units as u
 
 # peewee imports
@@ -64,9 +65,10 @@ def query(star):
     d = Simbad.query_object(star)
 # Simbad returns bytecode. Changing it to strings.
     n.convert_bytestring_to_unicode()
-# Transforming the n Astropy Table into a list
-    t = [name for name in n['ID']]
-    return t,d
+# Transforming the n Astropy Table into a string, so we can insert it in a DataFrame cell directly.
+    t = ', '.join([i for i in n['ID']])
+    d['ALTNAME'] = Column([t], dtype=object)
+    return d
 
 
 def correctname(star):
@@ -85,25 +87,22 @@ def onlinedata(star):
     Query the Simbad database to get the information about the star(s)(s).
     """
     data = None
-    if isinstance(star, list):
-        for s in star:
-            # Stacking the results one after each in a numpy array.
-            s = correctname(s)
-            print('Star : {0}'.format(s))
-            names, d = query(s)
-            if data is None:
-                data = np.array(d)
-            else:
-                data = np.hstack((data, d))
-    else:
-        print('Star : {0}'.format(star))
-        names, d = query(correctname(star))
-        data = np.array(d)
-    ns = pd.DataFrame(names)
-    print(ns)
+    if not isinstance(star, list):
+        star = [star]
+    for s in star:
+        # Stacking the results one after each in a numpy array.
+        s = correctname(s)
+        print('Star : {0}'.format(s))
+        d = query(s)
+        if data is None:
+            data = np.array(d)
+        else:
+            data = np.hstack((data, d))
+#    else:
+#        print('Star : {0}'.format(star))
+#        names, d = query(correctname(star))
+#        data = np.array(d)
     df = pd.DataFrame(data)
-    df = pd.concat([df, ns])
-    print(df)
     #print(ndf, df)
 # Before returning the data, since simbad returns byte objects for the name, let's change that to strings.
 # we create a lambda function that will convert byte to str
