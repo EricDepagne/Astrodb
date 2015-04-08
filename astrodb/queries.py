@@ -65,8 +65,9 @@ def query(star):
     d = Simbad.query_object(star)
 # Simbad returns bytecode. Changing it to strings.
     n.convert_bytestring_to_unicode()
-# Transforming the n Astropy Table into a string, so we can insert it in a DataFrame cell directly.
+# Transforming the n Astropy NameTable into a string, so we can insert it in a DataFrame cell directly.
     t = ', '.join([i for i in n['ID']])
+# Adding a column with the alternate names.
     d['ALTNAME'] = Column([t], dtype=object)
     return d
 
@@ -98,25 +99,16 @@ def onlinedata(star):
             data = np.array(d)
         else:
             data = np.hstack((data, d))
-#    else:
-#        print('Star : {0}'.format(star))
-#        names, d = query(correctname(star))
-#        data = np.array(d)
     df = pd.DataFrame(data)
-    #print(ndf, df)
-# Before returning the data, since simbad returns byte objects for the name, let's change that to strings.
-# we create a lambda function that will convert byte to str
-    f = lambda x: x.decode()
-    df['MAIN_ID'] = df['MAIN_ID'].map(f)
 # Coordinates are stored in the databse as Decimal() objects, so we transform them into a decimal.
 # We use astropy SkyCoords objects to do so.
     # coords = SkyCoord(ra=df['RA'], dec=df['DEC'], unit=(u.hourangle, u.deg))
-    for i in range(df.shape[0]):
-        ra = df['RA'][i]
-        dec = df['DEC'][i]
-        sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
-        df.loc[i:i, ('RA')] = decimalformat(sc.ra.hour)
-        df.loc[i:i, ('DEC')] = decimalformat(sc.dec.deg)
+#    for i in range(df.shape[0]):
+#        ra = df['RA'][i]
+#        dec = df['DEC'][i]
+#        sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
+#        df.loc[i:i, ('RA')] = decimalformat(sc.ra.hour)
+#        df.loc[i:i, ('DEC')] = decimalformat(sc.dec.deg)
 
     return df
 
