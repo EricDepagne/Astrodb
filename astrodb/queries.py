@@ -72,6 +72,16 @@ def query(star):
     return d
 
 
+def correctcoordinates(dataframe):
+    for i in range(dataframe.shape[0]):
+        ra = dataframe['RA'][i]
+        dec = dataframe['DEC'][i]
+        sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
+        dataframe.loc[i:i, ('RA')] = sc.ra.hour
+        dataframe.loc[i:i, ('DEC')] = sc.dec.deg
+    return dataframe
+
+
 def correctname(star):
     """
     Modify the name of some stars so it matches the simbad naming scheme
@@ -100,16 +110,7 @@ def onlinedata(star):
         else:
             data = np.hstack((data, d))
     df = pd.DataFrame(data)
-# Coordinates are stored in the databse as Decimal() objects, so we transform them into a decimal.
-# We use astropy SkyCoords objects to do so.
-    # coords = SkyCoord(ra=df['RA'], dec=df['DEC'], unit=(u.hourangle, u.deg))
-#    for i in range(df.shape[0]):
-#        ra = df['RA'][i]
-#        dec = df['DEC'][i]
-#        sc = SkyCoord(ra=ra, dec=dec, unit=(u.hourangle, u.deg))
-#        df.loc[i:i, ('RA')] = decimalformat(sc.ra.hour)
-#        df.loc[i:i, ('DEC')] = decimalformat(sc.dec.deg)
-
+    df = correctcoordinates(df)
     return df
 
 
