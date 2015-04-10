@@ -63,8 +63,11 @@ if not Present:
 def query(star):
     n = Simbad.query_objectids(star)
     d = Simbad.query_object(star)
+#query_object returns bytes instead of strings, thus converting.
+    d[0]['MAIN_ID'] = d[0]['MAIN_ID'].decode()  
 # Simbad returns bytecode. Changing it to strings.
     n.convert_bytestring_to_unicode()
+    d.convert_bytestring_to_unicode()
 # Transforming the n Astropy NameTable into a string, so we can insert it in a DataFrame cell directly.
     t = ', '.join([i for i in n['ID']])
 # Adding a column with the alternate names.
