@@ -40,7 +40,6 @@ Filters = ['U', 'B', 'V', 'R', 'I', 'J', 'H', 'K']
 Motions = ['pmra', 'pmdec']
 
 fields = Simbad.get_votable_fields()
-print(fields)
 Present = False
 for f in fields:
     if 'flux' in f:
@@ -63,12 +62,11 @@ if not Present:
 def query(star):
     n = Simbad.query_objectids(star)
     d = Simbad.query_object(star)
-#query_object returns bytes instead of strings, thus converting.
-    d[0]['MAIN_ID'] = d[0]['MAIN_ID'].decode()  
+# query_object returns bytes instead of strings, thus converting.
+    d[0]['MAIN_ID'] = d[0]['MAIN_ID'].decode()
 # Simbad returns bytecode. Changing it to strings.
     n.convert_bytestring_to_unicode()
-    d.convert_bytestring_to_unicode()
-# Transforming the n Astropy NameTable into a string, so we can insert it in a DataFrame cell directly.
+# Transforming the Astropy Name Table into a string, so we can insert it in a DataFrame cell directly.
     t = ', '.join([i for i in n['ID']])
 # Adding a column with the alternate names.
     d['ALTNAME'] = Column([t], dtype=object)
@@ -202,6 +200,5 @@ def extractdata(id):
                 if attr != 'starid':
                     params.append(getattr(field, attr))
                 val.update({attr: params})
-        if val:
-            temp.update(val)
+        temp.update(val)
     return temp
