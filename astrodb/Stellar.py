@@ -32,11 +32,9 @@ del password
 class UnknownField(object):
     pass
 
-
 class BaseModel(Model):
     class Meta:
         database = database
-
 
 class Star(BaseModel):
     declination = FloatField(null=True)
@@ -50,7 +48,6 @@ class Star(BaseModel):
     class Meta:
         db_table = 'Star'
 
-
 class Abundance(BaseModel):
     carbon = FloatField(db_column='Carbon', null=True)
     oxygen = FloatField(db_column='Oxygen', null=True)
@@ -61,6 +58,14 @@ class Abundance(BaseModel):
     class Meta:
         db_table = 'Abundance'
 
+class Frequency(BaseModel):
+    deltanu = IntegerField()
+    idfrequency = PrimaryKeyField(db_column='idFrequency')
+    numax = IntegerField()
+    starid = ForeignKeyField(db_column='starid', rel_model=Star, to_field='idstar')
+
+    class Meta:
+        db_table = 'Frequency'
 
 class Gravity(BaseModel):
     gravity = FloatField(index=True)
@@ -69,7 +74,6 @@ class Gravity(BaseModel):
 
     class Meta:
         db_table = 'Gravity'
-
 
 class Magnitude(BaseModel):
     bmag = DecimalField()
@@ -81,11 +85,10 @@ class Magnitude(BaseModel):
     rmag = DecimalField()
     starid = ForeignKeyField(db_column='starid', rel_model=Star, to_field='idstar')
     umag = DecimalField()
-    vmag = DecimalField(max_digits=10, decimal_places=3)
+    vmag = DecimalField()
 
     class Meta:
         db_table = 'Magnitude'
-
 
 class Name(BaseModel):
     alternatename = CharField(index=True)
@@ -95,14 +98,11 @@ class Name(BaseModel):
     class Meta:
         db_table = 'Name'
 
-
 class Temperature(BaseModel):
+    deltat = IntegerField(db_column='deltaT')
     idtemperature = PrimaryKeyField(db_column='idTemperature')
     starid = ForeignKeyField(db_column='starid', rel_model=Star, to_field='idstar')
     temperature = IntegerField()
 
     class Meta:
         db_table = 'Temperature'
-
-if __name__ == '__main__':
-    print("Not to be run")
