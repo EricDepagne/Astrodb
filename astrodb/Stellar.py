@@ -59,6 +59,8 @@ class Abundance(BaseModel):
         db_table = 'Abundance'
 
 class Dimension(BaseModel):
+    deltam = FloatField(null=True)
+    deltar = FloatField(null=True)
     iddimension = PrimaryKeyField(db_column='idDimension')
     mass = FloatField()
     radius = FloatField()
@@ -68,7 +70,9 @@ class Dimension(BaseModel):
         db_table = 'Dimension'
 
 class Frequency(BaseModel):
+    deltadeltanu = CharField(null=True)
     deltanu = FloatField()
+    deltanumax = FloatField(null=True)
     idfrequency = PrimaryKeyField(db_column='idFrequency')
     numax = FloatField()
     starid = ForeignKeyField(db_column='starid', rel_model=Star, to_field='idstar')
