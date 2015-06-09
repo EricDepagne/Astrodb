@@ -59,9 +59,9 @@ class Abundance(BaseModel):
         db_table = 'Abundance'
 
 class Frequency(BaseModel):
-    deltanu = IntegerField()
+    deltanu = FloatField()
     idfrequency = PrimaryKeyField(db_column='idFrequency')
-    numax = IntegerField()
+    numax = FloatField()
     starid = ForeignKeyField(db_column='starid', rel_model=Star, to_field='idstar')
 
     class Meta:
