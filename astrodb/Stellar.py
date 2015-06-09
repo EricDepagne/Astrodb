@@ -58,6 +58,15 @@ class Abundance(BaseModel):
     class Meta:
         db_table = 'Abundance'
 
+class Dimension(BaseModel):
+    deltanu = FloatField()
+    iddimension = PrimaryKeyField(db_column='idDimension')
+    mass = FloatField()
+    starid = ForeignKeyField(db_column='starid', rel_model=Star, to_field='idstar')
+
+    class Meta:
+        db_table = 'Dimension'
+
 class Frequency(BaseModel):
     deltanu = FloatField()
     idfrequency = PrimaryKeyField(db_column='idFrequency')
