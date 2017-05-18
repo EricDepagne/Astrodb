@@ -8,4 +8,4 @@ def cli_frontend():
     Main method called by the script, do your business here or extend it with 
     some commandline sugar like "click"
     """
-    print("Hello World!")
+    print "Hello World!"
