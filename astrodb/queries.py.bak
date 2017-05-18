@@ -20,7 +20,7 @@ from astropy import units as u
 # peewee imports
 from peewee import IntegrityError
 # Stellar imports
-from .Stellar import Star, Gravity, Magnitude, Name, Temperature, Abundance
+from Stellar import Star, Gravity, Magnitude, Name, Temperature, Abundance
 
 # Setting the precision of the decimal objects
 getcontext().prec = 3
@@ -104,7 +104,7 @@ def onlinedata(star):
     for s in star:
         # Stacking the results one after each in a numpy array.
         s = correctname(s)
-        print(('Star : {0}'.format(s)))
+        print('Star : {0}'.format(s))
         d = query(s)
         if data is None:
             data = np.array(d)
@@ -141,17 +141,17 @@ def addstar(starname):
     try:
         Star.create(name=starname)
     except IntegrityError:
-        print(('Star {0} already in database. Record not created, but can be updated.'.format(starname)))
+        print('Star {0} already in database. Record not created, but can be updated.'.format(starname))
 
 
 def addinfostar(star, field, value):
     id = idstar(star)
-    for table, attribute in list(Database.items()):
+    for table, attribute in Database.items():
         if field in attribute:
             model = table
     toinsert = {'starid': id,
                 field: value}
-    print(('Inserting {0} into {1}:{2} for star {3}'.format(value, model, field, star)))
+    print('Inserting {0} into {1}:{2} for star {3}'.format(value, model, field, star))
     toi = eval(model)(**toinsert)
     return toi.save()
 
@@ -186,7 +186,7 @@ def getdata(star):
 def extractdata(id):
     temp = {}
 # Getting the parameters from the tables.
-    for key in list(Database.keys()):
+    for key in Database.keys():
         val = {}
         for attr in Database[key]:
             params = []
