@@ -21,7 +21,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     install_requires=[
-        'astropy==0.4.2',
+        'astropy==5.3.3',
         'psycopg2==2.4.5',
     ],
     entry_points={
